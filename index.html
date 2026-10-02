@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夕食ログ＆献立アプリ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen pb-20">
+    <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
+        <h1 class="text-xl font-bold flex items-center gap-2"><span>🍽️</span> 夕食ログ＆献立</h1>
+        <span class="text-xs bg-indigo-700 px-2 py-1 rounded">自分専用</span>
+    </header>
+    <main class="max-w-md mx-auto p-4">
+        <section id="tab-home" class="tab-content space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-indigo-900"><span>✍️</span> 今日の夕食を記録</h2>
+                <form id="dinner-form" class="space-y-4">
+                    <div><label class="block text-xs font-semibold text-gray-500 mb-1">日付</label>
+                    <input type="date" id="input-date" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required></div>
+                    <div><label class="block text-xs font-semibold text-gray-500 mb-1">メイン料理名</label>
+                    <input type="text" id="input-menu" placeholder="例：ハンバーグ、生姜焼き" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs font-semibold text-gray-500 mb-1">カテゴリ</label>
+                        <select id="input-category" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="和食">和食</option><option value="洋食">洋食</option><option value="中華">中華</option><option value="その他">その他</option>
+                        </select></div>
+                        <div><label class="block text-xs font-semibold text-gray-500 mb-1">メイン食材</label>
+                        <select id="input-type" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="肉">肉</option><option value="魚">魚</option><option value="その他">その他</option>
+                        </select></div>
+                    </div>
+                    <div><label class="block text-xs font-semibold text-gray-500 mb-1">メモ・副菜など</label>
+                    <input type="text" id="input-memo" placeholder="例：味噌汁、サラダ" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm shadow-sm transition">保存する</button>
+                </form>
+            </div>
+            <div><h3 class="text-sm font-bold text-gray-500 mb-3 px-1">最近の夕食ログ</h3><div id="recent-list" class="space-y-3"></div></div>
+        </section>
+
+        <section id="tab-gacha" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-4">
+                <div class="text-4xl">🎲</div><h2 class="text-xl font-bold">今夜の献立ガチャ</h2>
+                <p class="text-xs text-indigo-100">過去のデータから、今夜のメニューをランダムで提案します！</p>
+                <button id="btn-gacha" class="bg-white text-indigo-600 font-bold px-6 py-3 rounded-full text-sm shadow-lg hover:bg-indigo-50 active:scale-95 transition transform">献立を提案してもらう！</button>
+            </div>
+            <div id="gacha-result" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center space-y-3">
+                <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">本日のおすすめ</span>
+                <h3 id="gacha-title" class="text-2xl font-bold text-gray-800">---</h3><p id="gacha-sub" class="text-xs text-gray-500">---</p>
+            </div>
+        </section>
+
+        <section id="tab-stats" class="tab-content hidden space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                <h2 class="text-base font-bold text-gray-700">肉 vs 魚 の割合</h2>
+                <div class="w-48 mx-auto"><canvas id="chart-main"></canvas></div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 text-xs text-gray-500 z-10">
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 text-indigo-600 font-bold"><span class="text-lg">🏠</span><span>記録</span></button>
+        <button onclick="switchTab('gacha')" id="nav-gacha" class="flex flex-col items-center gap-1"><span class="text-lg">🎲</span><span>ガチャ</span></button>
+        <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center gap-1"><span class="text-lg">📊</span><span>分析</span></button>
+    </nav>
+
+    <script>
+        let logs = JSON.parse(localStorage.getItem('dinner_logs')) || [
+            { id: 1, date: '2026-10-01', menu: 'ハンバーグ', category: '洋食', type: '肉', memo: 'コンソメスープ' },
+            { id: 2, date: '2026-10-02', menu: '鯖の塩焼き', category: '和食', type: '魚', memo: '豚汁、豆腐' }
+        ];
+        document.getElementById('input-date').valueAsDate = new Date();
+
+        function saveLogs() {
+            localStorage.setItem('dinner_logs', JSON.stringify(logs));
+            renderList(); updateChart();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('text-indigo-600', 'font-bold'); el.classList.add('text-gray-500');
+            });
+            document.getElementById(`nav-${tabName}`).classList.add('text-indigo-600', 'font-bold');
+        }
+
+        document.getElementById('dinner-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newLog = {
+                id: Date.now(),
+                date: document.getElementById('input-date').value,
+                menu: document.getElementById('input-menu').value,
+                category: document.getElementById('input-category').value,
+                type: document.getElementById('input-type').value,
+                memo: document.getElementById('input-memo').value
+            };
+            logs.unshift(newLog); saveLogs();
+            document.getElementById('input-menu').value = '';
+            document.getElementById('input-memo').value = '';
+            alert('保存したよ！');
+        });
+
+        function renderList() {
+            const listEl = document.getElementById('recent-list');
+            listEl.innerHTML = '';
+            logs.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center';
+                card.innerHTML = `
+                    <div><div class="text-xs text-gray-400 mb-0.5">${item.date}</div>
+                    <div class="font-bold text-gray-800 text-sm">${item.menu}</div>
+                    <div class="text-xs text-gray-500 mt-1">${item.memo || ''}</div></div>
+                    <div class="flex gap-1"><span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded">${item.category}</span>
+                    <span class="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded">${item.type}</span></div>`;
+                listEl.appendChild(card);
+            });
+        }
+
+        document.getElementById('btn-gacha').addEventListener('click', () => {
+            if (logs.length === 0) { alert('まだデータがないよ！'); return; }
+            const randomItem = logs[Math.floor(Math.random() * logs.length)];
+            document.getElementById('gacha-title').textContent = randomItem.menu;
+            document.getElementById('gacha-sub').textContent = `${randomItem.category} / ${randomItem.type} (${randomItem.memo || 'メモなし'})`;
+            document.getElementById('gacha-result').classList.remove('hidden');
+        });
+
+        let chart;
+        function updateChart() {
+            const counts = { 肉: 0, 魚: 0, その他: 0 };
+            logs.forEach(item => counts[item.type] = (counts[item.type] || 0) + 1);
+            const ctx = document.getElementById('chart-main').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['肉', '魚', 'その他'],
+                    datasets: [{ data: [counts['肉'], counts['魚'], counts['その他']], backgroundColor: ['#F87171', '#60A5FA', '#9CA3AF'] }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        renderList(); updateChart();
+    </script>
+</body>
+</html>
