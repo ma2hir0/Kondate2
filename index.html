@@ -50,20 +50,20 @@
             </div>
         </section>
 
-        <!-- 2. 献立ガチャ -->
+        <!-- 2. 献立ガチャ（候補3つ＆画像表示） -->
         <section id="tab-gacha" class="tab-content hidden space-y-6">
-            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-4">
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-3">
                 <div class="text-4xl">🎲</div>
                 <h2 class="text-xl font-bold">今夜の献立ガチャ</h2>
-                <p class="text-xs text-indigo-100">過去のデータからランダム提案！</p>
-                <button id="btn-gacha" class="bg-white text-indigo-600 font-bold px-6 py-3 rounded-full text-sm shadow-lg hover:bg-indigo-50 active:scale-95 transition transform">
-                    献立を提案してもらう！
+                <p class="text-xs text-indigo-100">過去のデータからおすすめ候補を3つ提案！</p>
+                <button id="btn-gacha" class="bg-white text-indigo-600 font-bold px-6 py-3 rounded-full text-sm shadow-lg hover:bg-indigo-50 active:scale-95 transition transform mt-2">
+                    献立候補を3つ選ぶ！
                 </button>
             </div>
-            <div id="gacha-result" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center space-y-3">
-                <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">本日のおすすめ</span>
-                <h3 id="gacha-title" class="text-2xl font-bold text-gray-800">---</h3>
-                <p id="gacha-sub" class="text-xs text-gray-500">---</p>
+
+            <div id="gacha-result" class="hidden space-y-4">
+                <h3 class="text-xs font-bold text-gray-400 px-1">今夜のおすすめ候補 3選</h3>
+                <div id="gacha-cards" class="space-y-3"></div>
             </div>
         </section>
 
@@ -167,7 +167,8 @@
         let selectedDateStr = '';
         let logs = JSON.parse(localStorage.getItem('dinner_logs')) || [
             { id: 1, date: '2026-10-01', menu: 'ハンバーグ', category: '洋食', type: '肉', memo: 'コンソメスープ' },
-            { id: 2, date: '2026-10-02', menu: '鯖の塩焼き', category: '和食', type: '魚', memo: '豚汁、豆腐' }
+            { id: 2, date: '2026-10-02', menu: '鯖の塩焼き', category: '和食', type: '魚', memo: '豚汁、豆腐' },
+            { id: 3, date: '2026-10-03', menu: '麻婆豆腐', category: '中華', type: '肉', memo: 'スープ' }
         ];
 
         function saveLogs() {
@@ -225,21 +226,16 @@
             }
         }
 
-        // 日付タップ時の分岐処理
         function handleDateClick(dateStr) {
             selectedDateStr = dateStr;
             const dayLogs = logs.filter(l => l.date === dateStr);
-
             if (dayLogs.length === 0) {
-                // 未入力なら直接入力画面を開く
                 openFormForNew();
             } else {
-                // 入力済みなら確認ポップアップを開く
                 openViewModal(dateStr);
             }
         }
 
-        // ①確認ポップアップ表示
         function openViewModal(dateStr) {
             document.getElementById('view-date').textContent = dateStr;
             const dayLogs = logs.filter(l => l.date === dateStr);
@@ -268,7 +264,6 @@
             document.getElementById('modal-view').classList.remove('hidden');
         }
 
-        // ②新規入力フォームを開く
         function openFormForNew() {
             closeModal('modal-view');
             document.getElementById('edit-id').value = '';
@@ -279,7 +274,6 @@
             document.getElementById('modal-form').classList.remove('hidden');
         }
 
-        // ②修正フォームを開く
         function openFormForEdit(id) {
             closeModal('modal-view');
             const log = logs.find(l => l.id == id);
@@ -295,7 +289,6 @@
             document.getElementById('modal-form').classList.remove('hidden');
         }
 
-        // 保存・更新処理
         document.getElementById('dinner-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
@@ -365,12 +358,59 @@
             });
         }
 
-        // ガチャ
+        // 料理名から関連画像を判定してURLを返す関数（Unsplashのフリー素材を利用）
+        function getFoodImage(menuName) {
+            const name = menuName.toLowerCase();
+            if (name.includes('ハンバーグ') || name.includes('ステーキ') || name.includes('焼肉')) {
+                return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=60';
+            } else if (name.includes('魚') || name.includes('鯖') || name.includes('鮭') || name.includes('刺身') || name.includes('寿司')) {
+                return 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&auto=format&fit=crop&q=60';
+            } else if (name.includes('パスタ') || name.includes('スパゲティ')) {
+                return 'https://images.unsplash.com/photo-1621996346565-e3d5d6288331?w=400&auto=format&fit=crop&q=60';
+            } else if (name.includes('カレー')) {
+                return 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&auto=format&fit=crop&q=60';
+            } else if (name.includes('中華') || name.includes('麻婆') || name.includes('餃子') || name.includes('ラーメン')) {
+                return 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=400&auto=format&fit=crop&q=60';
+            } else if (name.includes('チキン') || name.includes('唐揚げ') || name.includes('照り焼き')) {
+                return 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&auto=format&fit=crop&q=60';
+            } else if (name.includes('うどん') || name.includes('そば')) {
+                return 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&auto=format&fit=crop&q=60';
+            }
+            // デフォルトの美味しそうな料理画像
+            return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=60';
+        }
+
+        // ガチャ（候補3件抽出＋画像表示）
         document.getElementById('btn-gacha').addEventListener('click', () => {
             if (logs.length === 0) return alert('まだデータがないよ！');
-            const randomItem = logs[Math.floor(Math.random() * logs.length)];
-            document.getElementById('gacha-title').textContent = randomItem.menu;
-            document.getElementById('gacha-sub').textContent = `${randomItem.category} / ${randomItem.type}`;
+
+            // 料理名の重複を除いたユニークなメニュー一覧を取得
+            const uniqueLogs = Array.from(new Set(logs.map(l => l.menu)))
+                .map(menu => logs.find(l => l.menu === menu));
+
+            // ランダムにシャッフルして最大3件を取得
+            const shuffled = [...uniqueLogs].sort(() => 0.5 - Math.random());
+            const selectedCandidates = shuffled.slice(0, 3);
+
+            const cardsContainer = document.getElementById('gacha-cards');
+            cardsContainer.innerHTML = '';
+
+            selectedCandidates.forEach((item, index) => {
+                const imgUrl = getFoodImage(item.menu);
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex items-center p-3 gap-3';
+                card.innerHTML = `
+                    <img src="${imgUrl}" alt="${item.menu}" class="w-20 h-20 object-cover rounded-xl bg-gray-100 flex-shrink-0">
+                    <div class="flex-1">
+                        <span class="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">候補 ${index + 1}</span>
+                        <h4 class="font-bold text-gray-800 text-base mt-1">${item.menu}</h4>
+                        <div class="text-xs text-gray-500 mt-0.5">${item.category} / ${item.type}</div>
+                        ${item.memo ? `<div class="text-[10px] text-gray-400 mt-1 truncate">メモ: ${item.memo}</div>` : ''}
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
+            });
+
             document.getElementById('gacha-result').classList.remove('hidden');
         });
 
