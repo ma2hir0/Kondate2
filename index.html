@@ -50,7 +50,7 @@
             </div>
         </section>
 
-        <!-- 2. 献立ガチャ（候補3つ＆高精度画像表示） -->
+        <!-- 2. 献立ガチャ（候補3つ＆確実な画像表示） -->
         <section id="tab-gacha" class="tab-content hidden space-y-6">
             <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-3">
                 <div class="text-4xl">🎲</div>
@@ -251,7 +251,7 @@
                             <div class="text-xs text-gray-500 mt-0.5">${log.category} / ${log.type}</div>
                         </div>
                         <div class="flex gap-1">
-                            <button onclick="openFormForEdit(${log.id})" class="text-xs bg-white text-indigo-600 border border-indigo-200 px-2 py-1 rounded-lg hover:bg-indigo-50">✏️ 修正</button>
+                            <button onclick="openFormForEdit(${log.id})" class="text-xs bg-white text-indigo-600 border border-indigo-200 px-2 py-1 rounded-lg hover:bg-indigo-50">✏️️ 修正</button>
                             <button onclick="deleteLog(${log.id})" class="text-xs bg-white text-red-600 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50">🗑️ 削除</button>
                         </div>
                     </div>
@@ -357,46 +357,43 @@
             });
         }
 
-        // 高精度な英語検索クエリ判定マッピング
-        function getHighAccuracyFoodImage(menuName, category, type) {
+        // 確実かつ高画質な料理テーマ別写真集（直リンク）
+        const foodImages = {
+            hamburg: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=80',
+            chicken: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&auto=format&fit=crop&q=80',
+            steak: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop&q=80',
+            fish: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&auto=format&fit=crop&q=80',
+            sushi: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&auto=format&fit=crop&q=80',
+            pasta: 'https://images.unsplash.com/photo-1621996346565-e3d5d6288331?w=400&auto=format&fit=crop&q=80',
+            curry: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&auto=format&fit=crop&q=80',
+            noodle: 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&auto=format&fit=crop&q=80',
+            chinese: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=400&auto=format&fit=crop&q=80',
+            japanese: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=400&auto=format&fit=crop&q=80',
+            default: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=80'
+        };
+
+        // 料理名やカテゴリから最適な画像を割り当てる
+        function getStableFoodImage(menuName, category, type) {
             const name = menuName.toLowerCase();
-            let query = '';
 
-            // 具体的なメニュー名の判定
-            if (name.includes('ハンバーグ')) query = 'hamburger steak food';
-            else if (name.includes('照り焼きチキン') || name.includes('テリヤキ')) query = 'teriyaki chicken dish';
-            else if (name.includes('チキン') || name.includes('唐揚げ') || name.includes('とり')) query = 'fried chicken dish';
-            else if (name.includes('ピーマンの肉詰め') || name.includes('ピーマン肉詰め')) query = 'stuffed peppers food';
-            else if (name.includes('ミートスパ') || name.includes('スパゲティ') || name.includes('パスタ')) query = 'spaghetti bolognese pasta';
-            else if (name.includes('牛丼')) query = 'gyudon beef bowl japanese food';
-            else if (name.includes('カツ丼') || name.includes('かつ丼')) query = 'pork katsu don japanese food';
-            else if (name.includes('冷やし中華')) query = 'cold ramen noodles food';
-            else if (name.includes('ラーメン')) query = 'ramen noodle soup';
-            else if (name.includes('鯖の塩焼き') || name.includes('さば') || name.includes('サバ')) query = 'grilled mackerel fish japanese food';
-            else if (name.includes('鮭') || name.includes('サーモン')) query = 'grilled salmon fish food';
-            else if (name.includes('刺身') || name.includes('寿司') || name.includes('すし')) query = 'sashimi sushi japanese food';
-            else if (name.includes('シチュー') || name.includes('ホワイトシチュー')) query = 'cream stew soup food';
-            else if (name.includes('うどん') || name.includes('味噌煮込み')) query = 'udon noodle soup japanese food';
-            else if (name.includes('カレー')) query = 'japanese curry rice';
-            else if (name.includes('麻婆') || name.includes('マーボー')) query = 'mapo tofu chinese food';
-            else if (name.includes('餃子') || name.includes('ギョーザ')) query = 'gyoza dumplings food';
-            else if (name.includes('ステーキ') || name.includes('焼肉')) query = 'grilled steak meat food';
-            else if (name.includes('豚の生姜焼き') || name.includes('生姜焼き')) query = 'pork ginger japanese food';
-            else {
-                // カテゴリとタイプを組み合わせたバックアップクエリ
-                if (type === '魚') query = 'grilled fish japanese food';
-                else if (type === '肉') query = 'cooked meat dish food';
-                else if (category === '中華') query = 'chinese food dish';
-                else if (category === '洋食') query = 'western meal dish';
-                else query = 'japanese home cooked dinner';
-            }
+            if (name.includes('ハンバーグ') || name.includes('ピーマン')) return foodImages.hamburg;
+            if (name.includes('チキン') || name.includes('唐揚げ') || name.includes('照り焼き')) return foodImages.chicken;
+            if (name.includes('ステーキ') || name.includes('焼肉') || name.includes('牛丼') || name.includes('カツ丼')) return foodImages.steak;
+            if (name.includes('鯖') || name.includes('さば') || name.includes('鮭') || name.includes('魚')) return foodImages.fish;
+            if (name.includes('刺身') || name.includes('寿司') || name.includes('すし')) return foodImages.sushi;
+            if (name.includes('パスタ') || name.includes('スパゲティ') || name.includes('ミートスパ')) return foodImages.pasta;
+            if (name.includes('カレー') || name.includes('シチュー')) return foodImages.curry;
+            if (name.includes('うどん') || name.includes('ラーメン') || name.includes('冷やし中華') || name.includes('そば')) return foodImages.noodle;
+            if (name.includes('麻婆') || name.includes('餃子') || category === '中華') return foodImages.chinese;
 
-            // Unsplash Source URLで高精度検索
-            const encodedQuery = encodeURIComponent(query);
-            return `https://source.unsplash.com/400x300/?${encodedQuery}`;
+            if (type === '魚') return foodImages.fish;
+            if (type === '肉') return foodImages.steak;
+            if (category === '和食') return foodImages.japanese;
+
+            return foodImages.default;
         }
 
-        // ガチャ（候補3件抽出＋高精度画像表示）
+        // ガチャ（候補3件抽出＋画像表示）
         document.getElementById('btn-gacha').addEventListener('click', () => {
             if (logs.length === 0) return alert('まだデータがないよ！');
 
@@ -410,12 +407,12 @@
             cardsContainer.innerHTML = '';
 
             selectedCandidates.forEach((item, index) => {
-                const imgUrl = getHighAccuracyFoodImage(item.menu, item.category, item.type);
+                const imgUrl = getStableFoodImage(item.menu, item.category, item.type);
                 const card = document.createElement('div');
                 card.className = 'bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex items-center p-3 gap-3';
                 card.innerHTML = `
                     <img src="${imgUrl}" alt="${item.menu}" 
-                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=60';"
+                         onerror="this.src='${foodImages.default}';"
                          class="w-20 h-20 object-cover rounded-xl bg-gray-100 flex-shrink-0">
                     <div class="flex-1">
                         <span class="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">候補 ${index + 1}</span>
