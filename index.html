@@ -50,7 +50,7 @@
             </div>
         </section>
 
-        <!-- 2. 献立ガチャ（候補3つ＆画像表示） -->
+        <!-- 2. 献立ガチャ（候補3つ＆高精度画像表示） -->
         <section id="tab-gacha" class="tab-content hidden space-y-6">
             <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-3">
                 <div class="text-4xl">🎲</div>
@@ -114,7 +114,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 mb-1">メイン料理名</label>
-                    <input type="text" id="input-menu" placeholder="例：ハンバーグ、生姜焼き" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                    <input type="text" id="input-menu" placeholder="例：ハンバーグ、照り焼きチキン" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -168,7 +168,7 @@
         let logs = JSON.parse(localStorage.getItem('dinner_logs')) || [
             { id: 1, date: '2026-10-01', menu: 'ハンバーグ', category: '洋食', type: '肉', memo: 'コンソメスープ' },
             { id: 2, date: '2026-10-02', menu: '鯖の塩焼き', category: '和食', type: '魚', memo: '豚汁、豆腐' },
-            { id: 3, date: '2026-10-03', menu: '麻婆豆腐', category: '中華', type: '肉', memo: 'スープ' }
+            { id: 3, date: '2026-10-03', menu: '照り焼きチキン', category: '和食', type: '肉', memo: 'サラダ' }
         ];
 
         function saveLogs() {
@@ -190,7 +190,6 @@
             if(tabName === 'calendar') renderCalendar();
         }
 
-        // カレンダー表示
         function changeMonth(offset) {
             currentDate.setMonth(currentDate.getMonth() + offset);
             renderCalendar();
@@ -358,37 +357,52 @@
             });
         }
 
-        // 料理名から関連画像を判定してURLを返す関数（Unsplashのフリー素材を利用）
-        function getFoodImage(menuName) {
+        // 高精度な英語検索クエリ判定マッピング
+        function getHighAccuracyFoodImage(menuName, category, type) {
             const name = menuName.toLowerCase();
-            if (name.includes('ハンバーグ') || name.includes('ステーキ') || name.includes('焼肉')) {
-                return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&auto=format&fit=crop&q=60';
-            } else if (name.includes('魚') || name.includes('鯖') || name.includes('鮭') || name.includes('刺身') || name.includes('寿司')) {
-                return 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&auto=format&fit=crop&q=60';
-            } else if (name.includes('パスタ') || name.includes('スパゲティ')) {
-                return 'https://images.unsplash.com/photo-1621996346565-e3d5d6288331?w=400&auto=format&fit=crop&q=60';
-            } else if (name.includes('カレー')) {
-                return 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&auto=format&fit=crop&q=60';
-            } else if (name.includes('中華') || name.includes('麻婆') || name.includes('餃子') || name.includes('ラーメン')) {
-                return 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=400&auto=format&fit=crop&q=60';
-            } else if (name.includes('チキン') || name.includes('唐揚げ') || name.includes('照り焼き')) {
-                return 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&auto=format&fit=crop&q=60';
-            } else if (name.includes('うどん') || name.includes('そば')) {
-                return 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&auto=format&fit=crop&q=60';
+            let query = '';
+
+            // 具体的なメニュー名の判定
+            if (name.includes('ハンバーグ')) query = 'hamburger steak food';
+            else if (name.includes('照り焼きチキン') || name.includes('テリヤキ')) query = 'teriyaki chicken dish';
+            else if (name.includes('チキン') || name.includes('唐揚げ') || name.includes('とり')) query = 'fried chicken dish';
+            else if (name.includes('ピーマンの肉詰め') || name.includes('ピーマン肉詰め')) query = 'stuffed peppers food';
+            else if (name.includes('ミートスパ') || name.includes('スパゲティ') || name.includes('パスタ')) query = 'spaghetti bolognese pasta';
+            else if (name.includes('牛丼')) query = 'gyudon beef bowl japanese food';
+            else if (name.includes('カツ丼') || name.includes('かつ丼')) query = 'pork katsu don japanese food';
+            else if (name.includes('冷やし中華')) query = 'cold ramen noodles food';
+            else if (name.includes('ラーメン')) query = 'ramen noodle soup';
+            else if (name.includes('鯖の塩焼き') || name.includes('さば') || name.includes('サバ')) query = 'grilled mackerel fish japanese food';
+            else if (name.includes('鮭') || name.includes('サーモン')) query = 'grilled salmon fish food';
+            else if (name.includes('刺身') || name.includes('寿司') || name.includes('すし')) query = 'sashimi sushi japanese food';
+            else if (name.includes('シチュー') || name.includes('ホワイトシチュー')) query = 'cream stew soup food';
+            else if (name.includes('うどん') || name.includes('味噌煮込み')) query = 'udon noodle soup japanese food';
+            else if (name.includes('カレー')) query = 'japanese curry rice';
+            else if (name.includes('麻婆') || name.includes('マーボー')) query = 'mapo tofu chinese food';
+            else if (name.includes('餃子') || name.includes('ギョーザ')) query = 'gyoza dumplings food';
+            else if (name.includes('ステーキ') || name.includes('焼肉')) query = 'grilled steak meat food';
+            else if (name.includes('豚の生姜焼き') || name.includes('生姜焼き')) query = 'pork ginger japanese food';
+            else {
+                // カテゴリとタイプを組み合わせたバックアップクエリ
+                if (type === '魚') query = 'grilled fish japanese food';
+                else if (type === '肉') query = 'cooked meat dish food';
+                else if (category === '中華') query = 'chinese food dish';
+                else if (category === '洋食') query = 'western meal dish';
+                else query = 'japanese home cooked dinner';
             }
-            // デフォルトの美味しそうな料理画像
-            return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=60';
+
+            // Unsplash Source URLで高精度検索
+            const encodedQuery = encodeURIComponent(query);
+            return `https://source.unsplash.com/400x300/?${encodedQuery}`;
         }
 
-        // ガチャ（候補3件抽出＋画像表示）
+        // ガチャ（候補3件抽出＋高精度画像表示）
         document.getElementById('btn-gacha').addEventListener('click', () => {
             if (logs.length === 0) return alert('まだデータがないよ！');
 
-            // 料理名の重複を除いたユニークなメニュー一覧を取得
             const uniqueLogs = Array.from(new Set(logs.map(l => l.menu)))
                 .map(menu => logs.find(l => l.menu === menu));
 
-            // ランダムにシャッフルして最大3件を取得
             const shuffled = [...uniqueLogs].sort(() => 0.5 - Math.random());
             const selectedCandidates = shuffled.slice(0, 3);
 
@@ -396,11 +410,13 @@
             cardsContainer.innerHTML = '';
 
             selectedCandidates.forEach((item, index) => {
-                const imgUrl = getFoodImage(item.menu);
+                const imgUrl = getHighAccuracyFoodImage(item.menu, item.category, item.type);
                 const card = document.createElement('div');
                 card.className = 'bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex items-center p-3 gap-3';
                 card.innerHTML = `
-                    <img src="${imgUrl}" alt="${item.menu}" class="w-20 h-20 object-cover rounded-xl bg-gray-100 flex-shrink-0">
+                    <img src="${imgUrl}" alt="${item.menu}" 
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=60';"
+                         class="w-20 h-20 object-cover rounded-xl bg-gray-100 flex-shrink-0">
                     <div class="flex-1">
                         <span class="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">候補 ${index + 1}</span>
                         <h4 class="font-bold text-gray-800 text-base mt-1">${item.menu}</h4>
