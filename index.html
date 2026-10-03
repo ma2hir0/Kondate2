@@ -129,21 +129,24 @@
 
     </main>
 
-    <!-- モーダルポップアップ（詳細・編集・削除用） -->
+    <!-- モーダルポップアップ（複数ログ一覧・詳細・編集・削除用） -->
     <div id="modal" class="fixed inset-0 bg-black/40 hidden z-20 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
-            <div class="flex justify-between items-start">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-2">
                 <div>
-                    <div id="modal-date" class="text-xs text-gray-400">2026-10-01</div>
-                    <h3 id="modal-title" class="text-lg font-bold text-gray-800">ハンバーグ</h3>
+                    <span id="modal-date" class="text-sm font-bold text-gray-800">2026-10-01</span>
+                    <span class="text-xs text-gray-400 block">の記録</span>
                 </div>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg p-1">✕</button>
             </div>
-            <div id="modal-body" class="text-sm text-gray-600 space-y-1"></div>
-            <div class="flex gap-2 pt-2 border-t">
-                <button id="modal-btn-edit" class="flex-1 bg-indigo-50 text-indigo-600 font-bold py-2 rounded-xl text-xs hover:bg-indigo-100 transition">✏️ 修正する</button>
-                <button id="modal-btn-delete" class="flex-1 bg-red-50 text-red-600 font-bold py-2 rounded-xl text-xs hover:bg-red-100 transition">🗑️ 削除する</button>
+            
+            <div id="modal-list" class="space-y-3 overflow-y-auto flex-1 pr-1">
+                <!-- ここに該当日のログが一覧表示される -->
             </div>
+
+            <button id="modal-btn-add" class="w-full bg-indigo-50 text-indigo-600 font-bold py-2.5 rounded-xl text-xs hover:bg-indigo-100 transition">
+                ＋ この日に新しい記録を追加
+            </button>
         </div>
     </div>
 
@@ -194,7 +197,7 @@
             if(tabName === 'calendar') renderCalendar();
         }
 
-        // フォーム保存・更新処理
+        // フォーム保存・更新
         document.getElementById('dinner-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const editId = document.getElementById('edit-id').value;
@@ -205,7 +208,6 @@
             const memoVal = document.getElementById('input-memo').value;
 
             if (editId) {
-                // 編集（更新）
                 const targetLog = logs.find(l => l.id == editId);
                 if (targetLog) {
                     targetLog.date = dateVal;
@@ -216,7 +218,6 @@
                 }
                 alert('修正したよ！');
             } else {
-                // 新規作成
                 const newLog = {
                     id: Date.now(),
                     date: dateVal,
@@ -229,14 +230,11 @@
                 alert('保存したよ！');
             }
 
-            // 日付順に並び替え
             logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
             saveLogs();
             resetForm();
         });
 
-        // フォームリセット
         function resetForm() {
             document.getElementById('edit-id').value = '';
             document.getElementById('input-menu').value = '';
@@ -247,7 +245,6 @@
             document.getElementById('btn-cancel').classList.add('hidden');
         }
 
-        // 編集モード呼出
         function editLog(id) {
             const log = logs.find(l => l.id == id);
             if (!log) return;
@@ -259,7 +256,7 @@
             document.getElementById('input-type').value = log.type;
             document.getElementById('input-memo').value = log.memo || '';
 
-            document.getElementById('form-title').innerHTML = '<span>✏️</span> 夕食ログを修正';
+            document.getElementById('form-title').innerHTML = '<span>✏️️</span> 夕食ログを修正';
             document.getElementById('btn-submit').textContent = '修正を保存';
             document.getElementById('btn-cancel').classList.remove('hidden');
 
@@ -268,17 +265,21 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ログ削除
-        function deleteLog(id) {
+        function deleteLog(id, dateStr) {
             if (confirm('このログを削除してもいい？')) {
                 logs = logs.filter(l => l.id != id);
                 saveLogs();
-                closeModal();
+                // まだ同じ日にログが残っていればポップアップを再描画、無くなれば閉じる
+                const remaining = logs.filter(l => l.date === dateStr);
+                if (remaining.length > 0) {
+                    openDateModal(dateStr);
+                } else {
+                    closeModal();
+                }
                 alert('削除したよ！');
             }
         }
 
-        // ログ一覧描画
         function renderList() {
             const listEl = document.getElementById('recent-list');
             listEl.innerHTML = '';
@@ -286,21 +287,20 @@
                 const card = document.createElement('div');
                 card.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center';
                 card.innerHTML = `
-                    <div class="cursor-pointer flex-1" onclick="openModal(${item.id})">
+                    <div class="cursor-pointer flex-1" onclick="openDateModal('${item.date}')">
                         <div class="text-xs text-gray-400 mb-0.5">${item.date}</div>
                         <div class="font-bold text-gray-800 text-sm">${item.menu}</div>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded">${item.category}</span>
-                        <button onclick="editLog(${item.id})" class="text-xs text-indigo-500 hover:text-indigo-700 p-1">✏️️</button>
-                        <button onclick="deleteLog(${item.id})" class="text-xs text-red-400 hover:text-red-600 p-1">🗑️</button>
+                        <button onclick="editLog(${item.id})" class="text-xs text-indigo-500 hover:text-indigo-700 p-1">✏️</button>
+                        <button onclick="deleteLog(${item.id}, '${item.date}')" class="text-xs text-red-400 hover:text-red-600 p-1">🗑️</button>
                     </div>
                 `;
                 listEl.appendChild(card);
             });
         }
 
-        // カレンダー画面描画
         function changeMonth(offset) {
             currentDate.setMonth(currentDate.getMonth() + offset);
             renderCalendar();
@@ -322,14 +322,15 @@
 
             for (let day = 1; day <= lastDate; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const log = logs.find(l => l.date === dateStr);
+                const dayLogs = logs.filter(l => l.date === dateStr);
                 const cell = document.createElement('div');
                 cell.className = 'border border-gray-100 p-1 min-h-[50px] rounded-lg bg-white flex flex-col justify-between items-center text-xs cursor-pointer hover:bg-gray-50';
                 
-                cell.innerHTML = `<span class="font-bold ${log ? 'text-indigo-600' : 'text-gray-600'}">${day}</span>`;
-                if (log) {
-                    cell.innerHTML += `<div class="text-[10px] bg-indigo-50 text-indigo-700 rounded px-1 w-full truncate mt-1">${log.menu}</div>`;
-                    cell.onclick = () => openModal(log.id);
+                cell.innerHTML = `<span class="font-bold ${dayLogs.length > 0 ? 'text-indigo-600' : 'text-gray-600'}">${day}</span>`;
+                if (dayLogs.length > 0) {
+                    const extraCount = dayLogs.length > 1 ? ` (+${dayLogs.length - 1})` : '';
+                    cell.innerHTML += `<div class="text-[10px] bg-indigo-50 text-indigo-700 rounded px-1 w-full truncate mt-1">${dayLogs[0].menu}${extraCount}</div>`;
+                    cell.onclick = () => openDateModal(dateStr);
                 } else {
                     cell.onclick = () => {
                         document.getElementById('input-date').value = dateStr;
@@ -340,19 +341,44 @@
             }
         }
 
-        // モーダル表示
-        function openModal(id) {
-            const log = logs.find(l => l.id == id);
-            if (!log) return;
+        // 日付指定のポップアップ表示（同日の全ログをリスト表示）
+        function openDateModal(dateStr) {
+            const dayLogs = logs.filter(l => l.date === dateStr);
+            document.getElementById('modal-date').textContent = dateStr;
 
-            document.getElementById('modal-date').textContent = log.date;
-            document.getElementById('modal-title').textContent = log.menu;
-            document.getElementById('modal-body').innerHTML = `
-                <p>カテゴリ: <span class="font-semibold text-gray-700">${log.category} (${log.type})</span></p>
-                <p>メモ: <span class="font-semibold text-gray-700">${log.memo || 'なし'}</span></p>
-            `;
-            document.getElementById('modal-btn-edit').onclick = () => editLog(log.id);
-            document.getElementById('modal-btn-delete').onclick = () => deleteLog(log.id);
+            const listEl = document.getElementById('modal-list');
+            listEl.innerHTML = '';
+
+            if (dayLogs.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400 py-2">記録がありません</p>';
+            } else {
+                dayLogs.forEach(log => {
+                    const item = document.createElement('div');
+                    item.className = 'bg-gray-50 p-3 rounded-xl space-y-2 border border-gray-100';
+                    item.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="font-bold text-gray-800 text-sm">${log.menu}</div>
+                                <div class="text-xs text-gray-500 mt-0.5">${log.category} / ${log.type}</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="editLog(${log.id})" class="text-xs bg-white text-indigo-600 border border-indigo-200 px-2 py-1 rounded-lg hover:bg-indigo-50">✏️ 修正</button>
+                                <button onclick="deleteLog(${log.id}, '${dateStr}')" class="text-xs bg-white text-red-600 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50">🗑️ 削除</button>
+                            </div>
+                        </div>
+                        ${log.memo ? `<div class="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-100">メモ: ${log.memo}</div>` : ''}
+                    `;
+                    listEl.appendChild(item);
+                });
+            }
+
+            document.getElementById('modal-btn-add').onclick = () => {
+                resetForm();
+                document.getElementById('input-date').value = dateStr;
+                closeModal();
+                switchTab('home');
+            };
+
             document.getElementById('modal').classList.remove('hidden');
         }
 
