@@ -21,64 +21,8 @@
 
     <main class="max-w-md mx-auto p-4">
 
-        <!-- 1. ホーム（記録・編集） -->
-        <section id="tab-home" class="tab-content space-y-6">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <h2 id="form-title" class="text-lg font-bold mb-3 flex items-center gap-2 text-indigo-900">
-                    <span>✍️</span> 今日の夕食を記録
-                </h2>
-                <form id="dinner-form" class="space-y-4">
-                    <input type="hidden" id="edit-id" value="">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">日付</label>
-                        <input type="date" id="input-date" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">メイン料理名</label>
-                        <input type="text" id="input-menu" placeholder="例：ハンバーグ、生姜焼き" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">カテゴリ</label>
-                            <select id="input-category" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="和食">和食</option>
-                                <option value="洋食">洋食</option>
-                                <option value="中華">中華</option>
-                                <option value="その他">その他</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1">メイン食材</label>
-                            <select id="input-type" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="肉">肉</option>
-                                <option value="魚">魚</option>
-                                <option value="その他">その他</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">メモ・副菜など</label>
-                        <input type="text" id="input-memo" placeholder="例：味噌汁、サラダ" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                    </div>
-                    <div class="flex gap-2">
-                        <button type="submit" id="btn-submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm shadow-sm transition">
-                            保存する
-                        </button>
-                        <button type="button" id="btn-cancel" onclick="resetForm()" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-4 py-3 rounded-xl text-sm transition">
-                            キャンセル
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-bold text-gray-500 mb-3 px-1">最近の夕食ログ</h3>
-                <div id="recent-list" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- 2. 月単位カレンダー -->
-        <section id="tab-calendar" class="tab-content hidden space-y-4">
+        <!-- 1. 月単位カレンダー（メイン画面） -->
+        <section id="tab-calendar" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 <div class="flex justify-between items-center mb-4">
                     <button onclick="changeMonth(-1)" class="p-2 text-indigo-600 font-bold hover:bg-indigo-50 rounded-lg">＜ 前月</button>
@@ -98,9 +42,15 @@
 
                 <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
             </div>
+
+            <!-- 最近の記録一覧 -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-xs font-bold text-gray-400 mb-3 px-1">最近の夕食ログ</h3>
+                <div id="recent-list" class="space-y-2"></div>
+            </div>
         </section>
 
-        <!-- 3. 献立ガチャ -->
+        <!-- 2. 献立ガチャ -->
         <section id="tab-gacha" class="tab-content hidden space-y-6">
             <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-4">
                 <div class="text-4xl">🎲</div>
@@ -117,7 +67,7 @@
             </div>
         </section>
 
-        <!-- 4. 統計 -->
+        <!-- 3. 統計 -->
         <section id="tab-stats" class="tab-content hidden space-y-6">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
                 <h2 class="text-base font-bold text-gray-700">肉 vs 魚 の割合</h2>
@@ -129,33 +79,76 @@
 
     </main>
 
-    <!-- モーダルポップアップ（複数ログ一覧・詳細・編集・削除用） -->
-    <div id="modal" class="fixed inset-0 bg-black/40 hidden z-20 flex items-center justify-center p-4">
+    <!-- モーダル（①確認ポップアップ） -->
+    <div id="modal-view" class="fixed inset-0 bg-black/40 hidden z-20 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl max-h-[80vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
-                    <span id="modal-date" class="text-sm font-bold text-gray-800">2026-10-01</span>
+                    <span id="view-date" class="text-sm font-bold text-gray-800">2026-10-01</span>
                     <span class="text-xs text-gray-400 block">の記録</span>
                 </div>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg p-1">✕</button>
+                <button onclick="closeModal('modal-view')" class="text-gray-400 hover:text-gray-600 text-lg p-1">✕</button>
             </div>
             
-            <div id="modal-list" class="space-y-3 overflow-y-auto flex-1 pr-1">
-                <!-- ここに該当日のログが一覧表示される -->
-            </div>
+            <div id="view-list" class="space-y-3 overflow-y-auto flex-1 pr-1"></div>
 
-            <button id="modal-btn-add" class="w-full bg-indigo-50 text-indigo-600 font-bold py-2.5 rounded-xl text-xs hover:bg-indigo-100 transition">
-                ＋ この日に新しい記録を追加
+            <button onclick="openFormForNew()" class="w-full bg-indigo-50 text-indigo-600 font-bold py-2.5 rounded-xl text-xs hover:bg-indigo-100 transition">
+                ＋ 新しい記録を追加
             </button>
         </div>
     </div>
 
+    <!-- モーダル（②入力・編集フォーム） -->
+    <div id="modal-form" class="fixed inset-0 bg-black/40 hidden z-30 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 id="form-title" class="text-base font-bold text-gray-800">夕食を入力</h3>
+                <button onclick="closeModal('modal-form')" class="text-gray-400 hover:text-gray-600 text-lg p-1">✕</button>
+            </div>
+
+            <form id="dinner-form" class="space-y-3">
+                <input type="hidden" id="edit-id" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">日付</label>
+                    <input type="date" id="input-date" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">メイン料理名</label>
+                    <input type="text" id="input-menu" placeholder="例：ハンバーグ、生姜焼き" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">カテゴリ</label>
+                        <select id="input-category" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="和食">和食</option>
+                            <option value="洋食">洋食</option>
+                            <option value="中華">中華</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">メイン食材</label>
+                        <select id="input-type" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="肉">肉</option>
+                            <option value="魚">魚</option>
+                            <option value="その他">その他</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">メモ・副菜など</label>
+                    <input type="text" id="input-memo" placeholder="例：味噌汁、サラダ" class="w-full p-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm shadow-sm transition">
+                    保存する
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ボトムナビ -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 text-xs text-gray-500 z-10">
-        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 text-indigo-600 font-bold">
-            <span class="text-lg">🏠</span>
-            <span>記録</span>
-        </button>
-        <button onclick="switchTab('calendar')" id="nav-calendar" class="flex flex-col items-center gap-1">
+        <button onclick="switchTab('calendar')" id="nav-calendar" class="flex flex-col items-center gap-1 text-indigo-600 font-bold">
             <span class="text-lg">📅</span>
             <span>カレンダー</span>
         </button>
@@ -171,17 +164,16 @@
 
     <script>
         let currentDate = new Date();
+        let selectedDateStr = '';
         let logs = JSON.parse(localStorage.getItem('dinner_logs')) || [
             { id: 1, date: '2026-10-01', menu: 'ハンバーグ', category: '洋食', type: '肉', memo: 'コンソメスープ' },
             { id: 2, date: '2026-10-02', menu: '鯖の塩焼き', category: '和食', type: '魚', memo: '豚汁、豆腐' }
         ];
 
-        document.getElementById('input-date').valueAsDate = new Date();
-
         function saveLogs() {
             localStorage.setItem('dinner_logs', JSON.stringify(logs));
-            renderList();
             renderCalendar();
+            renderRecentList();
             updateChart();
         }
 
@@ -197,110 +189,7 @@
             if(tabName === 'calendar') renderCalendar();
         }
 
-        // フォーム保存・更新
-        document.getElementById('dinner-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const editId = document.getElementById('edit-id').value;
-            const dateVal = document.getElementById('input-date').value;
-            const menuVal = document.getElementById('input-menu').value;
-            const catVal = document.getElementById('input-category').value;
-            const typeVal = document.getElementById('input-type').value;
-            const memoVal = document.getElementById('input-memo').value;
-
-            if (editId) {
-                const targetLog = logs.find(l => l.id == editId);
-                if (targetLog) {
-                    targetLog.date = dateVal;
-                    targetLog.menu = menuVal;
-                    targetLog.category = catVal;
-                    targetLog.type = typeVal;
-                    targetLog.memo = memoVal;
-                }
-                alert('修正したよ！');
-            } else {
-                const newLog = {
-                    id: Date.now(),
-                    date: dateVal,
-                    menu: menuVal,
-                    category: catVal,
-                    type: typeVal,
-                    memo: memoVal
-                };
-                logs.unshift(newLog);
-                alert('保存したよ！');
-            }
-
-            logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-            saveLogs();
-            resetForm();
-        });
-
-        function resetForm() {
-            document.getElementById('edit-id').value = '';
-            document.getElementById('input-menu').value = '';
-            document.getElementById('input-memo').value = '';
-            document.getElementById('input-date').valueAsDate = new Date();
-            document.getElementById('form-title').innerHTML = '<span>✍️</span> 今日の夕食を記録';
-            document.getElementById('btn-submit').textContent = '保存する';
-            document.getElementById('btn-cancel').classList.add('hidden');
-        }
-
-        function editLog(id) {
-            const log = logs.find(l => l.id == id);
-            if (!log) return;
-
-            document.getElementById('edit-id').value = log.id;
-            document.getElementById('input-date').value = log.date;
-            document.getElementById('input-menu').value = log.menu;
-            document.getElementById('input-category').value = log.category;
-            document.getElementById('input-type').value = log.type;
-            document.getElementById('input-memo').value = log.memo || '';
-
-            document.getElementById('form-title').innerHTML = '<span>✏️️</span> 夕食ログを修正';
-            document.getElementById('btn-submit').textContent = '修正を保存';
-            document.getElementById('btn-cancel').classList.remove('hidden');
-
-            closeModal();
-            switchTab('home');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function deleteLog(id, dateStr) {
-            if (confirm('このログを削除してもいい？')) {
-                logs = logs.filter(l => l.id != id);
-                saveLogs();
-                // まだ同じ日にログが残っていればポップアップを再描画、無くなれば閉じる
-                const remaining = logs.filter(l => l.date === dateStr);
-                if (remaining.length > 0) {
-                    openDateModal(dateStr);
-                } else {
-                    closeModal();
-                }
-                alert('削除したよ！');
-            }
-        }
-
-        function renderList() {
-            const listEl = document.getElementById('recent-list');
-            listEl.innerHTML = '';
-            logs.slice(0, 5).forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center';
-                card.innerHTML = `
-                    <div class="cursor-pointer flex-1" onclick="openDateModal('${item.date}')">
-                        <div class="text-xs text-gray-400 mb-0.5">${item.date}</div>
-                        <div class="font-bold text-gray-800 text-sm">${item.menu}</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded">${item.category}</span>
-                        <button onclick="editLog(${item.id})" class="text-xs text-indigo-500 hover:text-indigo-700 p-1">✏️</button>
-                        <button onclick="deleteLog(${item.id}, '${item.date}')" class="text-xs text-red-400 hover:text-red-600 p-1">🗑️</button>
-                    </div>
-                `;
-                listEl.appendChild(card);
-            });
-        }
-
+        // カレンダー表示
         function changeMonth(offset) {
             currentDate.setMonth(currentDate.getMonth() + offset);
             renderCalendar();
@@ -324,66 +213,156 @@
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayLogs = logs.filter(l => l.date === dateStr);
                 const cell = document.createElement('div');
-                cell.className = 'border border-gray-100 p-1 min-h-[50px] rounded-lg bg-white flex flex-col justify-between items-center text-xs cursor-pointer hover:bg-gray-50';
+                cell.className = 'border border-gray-100 p-1 min-h-[52px] rounded-lg bg-white flex flex-col justify-between items-center text-xs cursor-pointer hover:bg-gray-50 transition';
                 
                 cell.innerHTML = `<span class="font-bold ${dayLogs.length > 0 ? 'text-indigo-600' : 'text-gray-600'}">${day}</span>`;
                 if (dayLogs.length > 0) {
                     const extraCount = dayLogs.length > 1 ? ` (+${dayLogs.length - 1})` : '';
                     cell.innerHTML += `<div class="text-[10px] bg-indigo-50 text-indigo-700 rounded px-1 w-full truncate mt-1">${dayLogs[0].menu}${extraCount}</div>`;
-                    cell.onclick = () => openDateModal(dateStr);
-                } else {
-                    cell.onclick = () => {
-                        document.getElementById('input-date').value = dateStr;
-                        switchTab('home');
-                    };
                 }
+                cell.onclick = () => handleDateClick(dateStr);
                 grid.appendChild(cell);
             }
         }
 
-        // 日付指定のポップアップ表示（同日の全ログをリスト表示）
-        function openDateModal(dateStr) {
+        // 日付タップ時の分岐処理
+        function handleDateClick(dateStr) {
+            selectedDateStr = dateStr;
             const dayLogs = logs.filter(l => l.date === dateStr);
-            document.getElementById('modal-date').textContent = dateStr;
-
-            const listEl = document.getElementById('modal-list');
-            listEl.innerHTML = '';
 
             if (dayLogs.length === 0) {
-                listEl.innerHTML = '<p class="text-xs text-gray-400 py-2">記録がありません</p>';
+                // 未入力なら直接入力画面を開く
+                openFormForNew();
             } else {
-                dayLogs.forEach(log => {
-                    const item = document.createElement('div');
-                    item.className = 'bg-gray-50 p-3 rounded-xl space-y-2 border border-gray-100';
-                    item.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-bold text-gray-800 text-sm">${log.menu}</div>
-                                <div class="text-xs text-gray-500 mt-0.5">${log.category} / ${log.type}</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button onclick="editLog(${log.id})" class="text-xs bg-white text-indigo-600 border border-indigo-200 px-2 py-1 rounded-lg hover:bg-indigo-50">✏️ 修正</button>
-                                <button onclick="deleteLog(${log.id}, '${dateStr}')" class="text-xs bg-white text-red-600 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50">🗑️ 削除</button>
-                            </div>
+                // 入力済みなら確認ポップアップを開く
+                openViewModal(dateStr);
+            }
+        }
+
+        // ①確認ポップアップ表示
+        function openViewModal(dateStr) {
+            document.getElementById('view-date').textContent = dateStr;
+            const dayLogs = logs.filter(l => l.date === dateStr);
+            const listEl = document.getElementById('view-list');
+            listEl.innerHTML = '';
+
+            dayLogs.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'bg-gray-50 p-3 rounded-xl space-y-2 border border-gray-100';
+                item.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-bold text-gray-800 text-sm">${log.menu}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">${log.category} / ${log.type}</div>
                         </div>
-                        ${log.memo ? `<div class="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-100">メモ: ${log.memo}</div>` : ''}
-                    `;
-                    listEl.appendChild(item);
+                        <div class="flex gap-1">
+                            <button onclick="openFormForEdit(${log.id})" class="text-xs bg-white text-indigo-600 border border-indigo-200 px-2 py-1 rounded-lg hover:bg-indigo-50">✏️ 修正</button>
+                            <button onclick="deleteLog(${log.id})" class="text-xs bg-white text-red-600 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50">🗑️ 削除</button>
+                        </div>
+                    </div>
+                    ${log.memo ? `<div class="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-100">メモ: ${log.memo}</div>` : ''}
+                `;
+                listEl.appendChild(item);
+            });
+
+            document.getElementById('modal-view').classList.remove('hidden');
+        }
+
+        // ②新規入力フォームを開く
+        function openFormForNew() {
+            closeModal('modal-view');
+            document.getElementById('edit-id').value = '';
+            document.getElementById('input-date').value = selectedDateStr;
+            document.getElementById('input-menu').value = '';
+            document.getElementById('input-memo').value = '';
+            document.getElementById('form-title').textContent = `${selectedDateStr} の入力`;
+            document.getElementById('modal-form').classList.remove('hidden');
+        }
+
+        // ②修正フォームを開く
+        function openFormForEdit(id) {
+            closeModal('modal-view');
+            const log = logs.find(l => l.id == id);
+            if (!log) return;
+
+            document.getElementById('edit-id').value = log.id;
+            document.getElementById('input-date').value = log.date;
+            document.getElementById('input-menu').value = log.menu;
+            document.getElementById('input-category').value = log.category;
+            document.getElementById('input-type').value = log.type;
+            document.getElementById('input-memo').value = log.memo || '';
+            document.getElementById('form-title').textContent = '記録を修正';
+            document.getElementById('modal-form').classList.remove('hidden');
+        }
+
+        // 保存・更新処理
+        document.getElementById('dinner-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
+            const dateVal = document.getElementById('input-date').value;
+            const menuVal = document.getElementById('input-menu').value;
+            const catVal = document.getElementById('input-category').value;
+            const typeVal = document.getElementById('input-type').value;
+            const memoVal = document.getElementById('input-memo').value;
+
+            if (editId) {
+                const targetLog = logs.find(l => l.id == editId);
+                if (targetLog) {
+                    targetLog.date = dateVal;
+                    targetLog.menu = menuVal;
+                    targetLog.category = catVal;
+                    targetLog.type = typeVal;
+                    targetLog.memo = memoVal;
+                }
+            } else {
+                logs.unshift({
+                    id: Date.now(),
+                    date: dateVal,
+                    menu: menuVal,
+                    category: catVal,
+                    type: typeVal,
+                    memo: memoVal
                 });
             }
 
-            document.getElementById('modal-btn-add').onclick = () => {
-                resetForm();
-                document.getElementById('input-date').value = dateStr;
-                closeModal();
-                switchTab('home');
-            };
+            logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+            saveLogs();
+            closeModal('modal-form');
+        });
 
-            document.getElementById('modal').classList.remove('hidden');
+        function deleteLog(id) {
+            if (confirm('このログを削除してもいい？')) {
+                logs = logs.filter(l => l.id != id);
+                saveLogs();
+                const remaining = logs.filter(l => l.date === selectedDateStr);
+                if (remaining.length > 0) {
+                    openViewModal(selectedDateStr);
+                } else {
+                    closeModal('modal-view');
+                }
+            }
         }
 
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function renderRecentList() {
+            const listEl = document.getElementById('recent-list');
+            listEl.innerHTML = '';
+            logs.slice(0, 3).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'flex justify-between items-center text-xs p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100';
+                card.onclick = () => handleDateClick(item.date);
+                card.innerHTML = `
+                    <div>
+                        <span class="text-gray-400 mr-2">${item.date}</span>
+                        <span class="font-bold text-gray-800">${item.menu}</span>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded text-[10px]">${item.category}</span>
+                `;
+                listEl.appendChild(card);
+            });
         }
 
         // ガチャ
@@ -412,7 +391,9 @@
             });
         }
 
-        renderList();
+        // 初期表示
+        renderCalendar();
+        renderRecentList();
         updateChart();
     </script>
 </body>
