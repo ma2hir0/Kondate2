@@ -50,12 +50,12 @@
             </div>
         </section>
 
-        <!-- 2. 献立ガチャ（カテゴリ一致の副菜シャッフル提案） -->
+        <!-- 2. 献立ガチャ（副菜重複防止機能付き） -->
         <section id="tab-gacha" class="tab-content hidden space-y-6">
             <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-md text-center space-y-3">
                 <div class="text-4xl">🎲</div>
                 <h2 class="text-xl font-bold">今夜の献立ガチャ</h2>
-                <p class="text-xs text-indigo-100">カテゴリ（和・洋・中華）に合った過去の副菜から提案！</p>
+                <p class="text-xs text-indigo-100">カテゴリ別＆被りなしの組み合わせを3つ提案！</p>
                 <button id="btn-gacha" class="bg-white text-indigo-600 font-bold px-6 py-3 rounded-full text-sm shadow-lg hover:bg-indigo-50 active:scale-95 transition transform mt-2">
                     献立候補を3つ選ぶ！
                 </button>
@@ -358,15 +358,13 @@
             });
         }
 
-        // カテゴリ（和食・洋食・中華など）ごとに過去の副菜プールを取得する関数
+        // カテゴリ（和食・洋食・中華）ごとに過去の副菜リストを取得
         function getSideDishPoolByCategory(category) {
             const sideDishes = [];
-            // 指定されたカテゴリと一致するログだけを対象にする
             const targetLogs = logs.filter(log => log.category === category);
             
             targetLogs.forEach(log => {
                 if (log.memo && log.memo.trim() !== '') {
-                    // 読点「、」やカンマ「,」「/」などで分解して個別追加
                     const items = log.memo.split(/[,、/／\s]+/);
                     items.forEach(item => {
                         const cleaned = item.trim();
@@ -374,30 +372,39 @@
                     });
                 }
             });
-            return Array.from(new Set(sideDishes)); // 重複削除
+            return Array.from(new Set(sideDishes));
         }
 
-        // メイン料理のカテゴリに合った過去の副菜からランダム抽出
-        function getRandomSideDishCombination(item) {
+        // すでに提案カード内で使われた副菜キーワードと被らないように選出する関数
+        function getRandomSideDishCombination(item, usedSideDishes) {
             const cat = item.category;
             const pool = getSideDishPoolByCategory(cat);
+            
+            // まだ使用されていない副菜にフィルタリング
+            const availablePool = pool.filter(dish => !usedSideDishes.has(dish));
 
-            if (pool.length >= 2) {
-                // 同じカテゴリの副菜プールからランダムに2品抽出
-                const shuffled = [...pool].sort(() => 0.5 - Math.random());
+            if (availablePool.length >= 2) {
+                const shuffled = [...availablePool].sort(() => 0.5 - Math.random());
+                usedSideDishes.add(shuffled[0]);
+                usedSideDishes.add(shuffled[1]);
                 return `${shuffled[0]}、${shuffled[1]}`;
-            } else if (pool.length === 1) {
-                return pool[0];
+            } else if (availablePool.length === 1) {
+                usedSideDishes.add(availablePool[0]);
+                return availablePool[0];
+            } else if (pool.length > 0) {
+                // 利用可能プールが尽きた場合は全体プールから抽出
+                const shuffled = [...pool].sort(() => 0.5 - Math.random());
+                return shuffled[0];
             }
 
-            // カテゴリの過去データが足りない場合のフォールバック設定
-            if (cat === '和食') return '味噌汁、小鉢（冷奴・おひたしなど）';
+            // カテゴリの過去データがない場合のフォールバック
+            if (cat === '和食') return '味噌汁、季節の小鉢';
             if (cat === '洋食') return 'コンソメスープ、ミニサラダ';
             if (cat === '中華') return 'たまごスープ、ザーサイ';
             return 'お好みのスープ・サラダ';
         }
 
-        // ガチャ（候補3件・カテゴリ連動の副菜提案付き）
+        // ガチャ（候補3件・副菜の重複防止ロジック付き）
         document.getElementById('btn-gacha').addEventListener('click', () => {
             if (logs.length === 0) return alert('まだデータがないよ！');
 
@@ -410,8 +417,11 @@
             const cardsContainer = document.getElementById('gacha-cards');
             cardsContainer.innerHTML = '';
 
+            // 今回のガチャ結果内で使用した副菜を記録するSet
+            const usedSideDishes = new Set();
+
             selectedCandidates.forEach((item, index) => {
-                const sideDish = getRandomSideDishCombination(item);
+                const sideDish = getRandomSideDishCombination(item, usedSideDishes);
                 const card = document.createElement('div');
                 card.className = 'bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3';
                 card.innerHTML = `
